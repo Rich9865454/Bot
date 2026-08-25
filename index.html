@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>💰 RICH MINER</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 16px;
+            padding-bottom: 90px;
+        }
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(247, 151, 30, 0.3);
+        }
+        .header h1 {
+            color: #1a1a2e;
+            font-size: 22px;
+        }
+        .header .balance {
+            font-size: 38px;
+            font-weight: 900;
+            color: #1a1a2e;
+            margin: 5px 0;
+        }
+        .header .balance span {
+            font-size: 16px;
+        }
+        .header .user-id {
+            color: #1a1a2e;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        /* ===== СТАТИСТИКА ===== */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 14px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .stat-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        .stat-card .label {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+        
+        /* ===== КНОПКИ ===== */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #e17055, #d63031);
+        }
+        .btn-purple {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        }
+        .btn-full {
+            grid-column: 1 / -1;
+        }
+        
+        /* ===== СЕКЦИИ ===== */
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .section h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #ffd700;
+        }
+        
+        /* ===== МАЙНЕРЫ ===== */
+        .miner-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .miner-item:last-child {
+            border-bottom: none;
+        }
+        .miner-status {
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-active {
+            background: rgba(0,206,201,0.2);
+            color: #00cec9;
+        }
+        .status-expired {
+            background: rgba(214,48,49,0.2);
+            color: #d63031;
+        }
+        
+        /* ===== РЕФЕРАЛЬНАЯ ССЫЛКА ===== */
+        .ref-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .ref-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 12px;
+            outline: none;
+        }
+        .ref-box button {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            border: none;
+            border-radius: 8px;
+            color: #1a1a2e;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        /* ===== АДМИН-ПАНЕЛЬ ===== */
+        .admin-section {
+            background: rgba(255,0,0,0.1);
+            border: 2px solid rgba(255,0,0,0.3);
+        }
+        .admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+        }
+        .admin-input {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 80px;
+        }
+        
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+            z-index: 1000;
+            max-width: 90%;
+            text-align: center;
+        }
+        .toast.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        /* ===== ТАБЫ ===== */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 5px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            color: #fff;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- ===== HEADER ===== -->
+        <div class="header">
+            <h1>💰 RICH MINER</h1>
+            <div class="balance" id="balanceDisplay">0 <span>RICH</span></div>
+            <div class="user-id" id="userIdDisplay">ID: загрузка...</div>
+        </div>
+        
+        <!-- ===== СТАТИСТИКА ===== -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="value" id="minersCount">0</div>
+                <div class="label">⛏️ Майнеров</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="totalMined">0</div>
+                <div class="label">💰 Добыто</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="referralsCount">0</div>
+                <div class="label">👥 Рефералы</div>
+            </div>
+        </div>
+        
+        <!-- ===== ТАБЫ ===== -->
+        <div class="tabs">
+            <button class="tab active" data-tab="mining">⛏️ Майнинг</button>
+            <button class="tab" data-tab="shop">🛒 Магазин</button>
+            <button class="tab" data-tab="referral">👥 Рефералы</button>
+            <button class="tab" data-tab="admin" id="adminTab" style="display:none;">⚙️ Админ</button>
+        </div>
+        
+        <!-- ===== ВКЛАДКА МАЙНИНГ ===== -->
+        <div class="tab-content active" id="tab-mining">
+            <div class="section">
+                <h3>⛏️ Мои майнеры</h3>
+                <div id="minersList">
+                    <div style="text-align:center; opacity:0.5; padding:20px;">Нет майнеров</div>
+                </div>
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-success" onclick="claimMining()">💰 Забрать доход</button>
+                <button class="btn btn-primary" onclick="dailyBonus()">🎁 Бонус дня</button>
+            </div>
+        </div>
+        
+        <!-- ===== ВКЛАДКА МАГАЗИН ===== -->
+        <div class="tab-content" id="tab-shop">
+            <div class="section" style="text-align:center;">
+                <h3>🛒 Купить майнер</h3>
+                <div style="font-size:60px; margin:10px 0;">⛏️</div>
+                <div style="font-size:18px; font-weight:700;">Майнер RICH</div>
+                <div style="font-size:13px; opacity:0.6; margin:8px 0;">
+                    Доход: +0.1 RICH/час<br>
+                    Работает: 30 дней
+                </div>
+                <div style="font-size:28px; font-weight:700; color:#ffd700; margin:10px 0;">
+                    💰 50 RICH
+                </div>
+                <button class="btn btn-primary btn-full" onclick="buyMiner()" style="padding:16px;">
+                    🚀 Купить
+                </button>
+            </div>
+        </div>
+        
+        <!-- ===== ВКЛАДКА РЕФЕРАЛЫ ===== -->
+        <div class="tab-content" id="tab-referral">
+            <div class="section">
+                <h3>👥 Мои рефералы</h3>
+                <div id="referralsList">
+                    <div style="text-align:center; opacity:0.5; padding:20px;">Нет рефералов</div>
+                </div>
+                <div style="margin-top:15px;">
+                    <div style="font-size:13px; font-weight:600; margin-bottom:8px;">🔗 Ваша ссылка:</div>
+                    <div class="ref-box">
+                        <input type="text" id="refLinkInput" readonly>
+                        <button onclick="copyRefLink()">📋</button>
+                    </div>
+                    <div style="font-size:11px; opacity:0.5; margin-top:8px;">
+                        За каждого реферала +5 RICH
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ===== ВКЛАДКА АДМИН ===== -->
+        <div class="tab-content" id="tab-admin">
+            <div class="section admin-section">
+                <h3>⚙️ Админ-панель</h3>
+                <div id="adminContent">
+                    <div style="text-align:center; opacity:0.5; padding:10px;">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // ============================================
+        //  НАСТРОЙКИ
+        // ============================================
+        const ADMIN_ID = 8684827145;
+        const REF_BONUS = 5;
+        const DAILY_BONUS = 10;
+        const MINER_COST = 50;
+        const MINER_INCOME = 0.1;
+        const MINER_LIFETIME = 30;
+        
+        // ============================================
+        //  ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
+        // ============================================
+        let userData = {
+            user_id: null,
+            username: 'Пользователь',
+            balance: 1,
+            miners: 0,
+            total_mined: 0,
+            ref_code: null,
+            invited_by: null,
+            referrals: [],
+            miners_list: [],
+            daily_bonus_date: 0
+        };
+        
+        let isAdmin = false;
+        
+        // ============================================
+        //  ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP
+        // ============================================
+        function initTelegram() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const webApp = window.Telegram.WebApp;
+                webApp.ready();
+                webApp.expand();
+                
+                const user = webApp.initDataUnsafe.user;
+                if (user) {
+                    userData.user_id = user.id;
+                    userData.username = user.username || user.first_name || 'Пользователь';
+                    
+                    // Показываем НАСТОЯЩИЙ ID
+                    document.getElementById('userIdDisplay').textContent = `🆔 ID: ${userData.user_id}`;
+                    
+                    // Проверяем, админ ли
+                    if (userData.user_id === ADMIN_ID) {
+                        isAdmin = true;
+                        document.getElementById('adminTab').style.display = 'block';
+                    }
+                }
+                
+                // Проверяем реферальный параметр из URL
+                const params = new URLSearchParams(window.location.search);
+                const ref = params.get('ref');
+                if (ref && !userData.invited_by) {
+                    userData.invited_by = ref.replace('RICH', '');
+                    // Сохраняем, что пришёл по рефералке
+                    localStorage.setItem('invited_by', userData.invited_by);
+                }
+                
+                loadUserData();
+            } else {
+                // ТЕСТОВЫЙ РЕЖИМ (не в Telegram)
+                userData.user_id = 123456789;
+                userData.username = 'Тестер';
+                document.getElementById('userIdDisplay').textContent = `🆔 ID: ${userData.user_id} (тест)`;
+                isAdmin = true;
+                document.getElementById('adminTab').style.display = 'block';
+                loadUserData();
+            }
+        }
+        
+        // ============================================
+        //  РАБОТА С ДАННЫМИ (localStorage + синхронизация)
+        // ============================================
+        function saveUserData() {
+            const key = `user_${userData.user_id}`;
+            const data = {
+                balance: userData.balance,
+                miners: userData.miners,
+                total_mined: userData.total_mined,
+                ref_code: userData.ref_code,
+                invited_by: userData.invited_by,
+                miners_list: userData.miners_list,
+                referrals: userData.referrals,
+                daily_bonus_date: userData.daily_bonus_date
+            };
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        function loadUserData() {
+            const key = `user_${userData.user_id}`;
+            const saved = localStorage.getItem(key);
+            
+            if (saved) {
+                const data = JSON.parse(saved);
+                userData.balance = data.balance || 1;
+                userData.miners = data.miners || 0;
+                userData.total_mined = data.total_mined || 0;
+                userData.ref_code = data.ref_code || `RICH${userData.user_id}`;
+                userData.invited_by = data.invited_by || localStorage.getItem('invited_by') || null;
+                userData.miners_list = data.miners_list || [];
+                userData.referrals = data.referrals || [];
+                userData.daily_bonus_date = data.daily_bonus_date || 0;
+            } else {
+                // НОВЫЙ ПОЛЬЗОВАТЕЛЬ
+                userData.ref_code = `RICH${userData.user_id}`;
+                userData.balance = 1;
+                userData.miners = 0;
+                userData.miners_list = [];
+                userData.referrals = [];
+                userData.daily_bonus_date = 0;
+                
+                // Если пришёл по рефералке - начисляем бонус
+                if (userData.invited_by) {
+                    // Добавляем в рефералы пригласившего
+                    addReferralToInviter(userData.invited_by, userData.user_id);
+                    showToast('🎉 Вы пришли по реферальной ссылке!');
+                }
+                
+                saveUserData();
+            }
+            
+            updateUI();
+            
+            // Если админ - загружаем админ-панель
+            if (isAdmin) {
+                loadAdminPanel();
+            }
+        }
+        
+        // ============================================
+        //  РЕФЕРАЛЬНАЯ СИСТЕМА
+        // ============================================
+        function addReferralToInviter(referrer_id, referred_id) {
+            const key = `user_${referrer_id}`;
+            const saved = localStorage.getItem(key);
+            
+            if (saved) {
+                const data = JSON.parse(saved);
+                if (!data.referrals) data.referrals = [];
+                
+                // Проверяем, не добавляли ли уже
+                const exists = data.referrals.some(r => r.user_id === referred_id);
+                if (!exists) {
+                    data.referrals.push({
+                        user_id: referred_id,
+                        date: Date.now()
+                    });
+                    data.balance = (data.balance || 0) + REF_BONUS;
+                    localStorage.setItem(key, JSON.stringify(data));
+                }
+            } else {
+                // Если пригласивший ещё не зарегистрирован - создаём
+                const newData = {
+                    balance: 1 + REF_BONUS,
+                    miners: 0,
+                    total_mined: 0,
+                    ref_code: `RICH${referrer_id}`,
+                    invited_by: null,
+                    miners_list: [],
+                    referrals: [{ user_id: referred_id, date: Date.now() }],
+                    daily_bonus_date: 0
+                };
+                localStorage.setItem(key, JSON.stringify(newData));
+            }
+        }
+        
+        // ============================================
+        //  ФУНКЦИИ ИГРЫ
+        // ============================================
+        
+        // Покупка майнера
+        function buyMiner() {
+            if (userData.balance < MINER_COST) {
+                showToast(`❌ Нужно ${MINER_COST} RICH`);
+                return;
+            }
+            
+            userData.balance -= MINER_COST;
+            userData.miners += 1;
+            
+            const now = Date.now();
+            const endDate = now + (MINER_LIFETIME * 24 * 60 * 60 * 1000);
+            userData.miners_list.push({
+                id: Date.now(),
+                start_date: now,
+                end_date: endDate,
+                is_active: true
+            });
+            
+            saveUserData();
+            updateUI();
+            showToast('✅ Майнер куплен!');
+        }
+        
+        // Забрать доход
+        function claimMining() {
+            let totalIncome = 0;
+            const now = Date.now();
+            
+            userData.miners_list.forEach(miner => {
+                if (miner.is_active && now < miner.end_date) {
+                    const hoursActive = (now - miner.start_date) / (60 * 60 * 1000);
+                    const income = hoursActive * MINER_INCOME;
+                    totalIncome += income;
+                    miner.start_date = now;
+                }
+            });
+            
+            if (totalIncome > 0) {
+                userData.balance += totalIncome;
+                userData.total_mined += totalIncome;
+                saveUserData();
+                updateUI();
+                showToast(`💰 +${totalIncome.toFixed(2)} RICH`);
+            } else {
+                showToast('⏳ Нет дохода');
+            }
+        }
+        
+        // Ежедневный бонус
+        function dailyBonus() {
+            const now = Date.now();
+            const lastBonus = userData.daily_bonus_date || 0;
+            const dayMs = 24 * 60 * 60 * 1000;
+            
+            if (now - lastBonus < dayMs) {
+                const left = dayMs - (now - lastBonus);
+                const h = Math.floor(left / (60 * 60 * 1000));
+                const m = Math.floor((left % (60 * 60 * 1000)) / (60 * 1000));
+                showToast(`⏳ Через ${h}ч ${m}м`);
+                return;
+            }
+            
+            userData.balance += DAILY_BONUS;
+            userData.daily_bonus_date = now;
+            saveUserData();
+            updateUI();
+            showToast(`🎁 +${DAILY_BONUS} RICH`);
+        }
+        
+        // Копирование ссылки
+        function copyRefLink() {
+            const input = document.getElementById('refLinkInput');
+            input.select();
+            document.execCommand('copy');
+            showToast('✅ Скопировано!');
+        }
+        
+        // ============================================
+        //  АДМИН-ПАНЕЛЬ
+        // ============================================
+        function loadAdminPanel() {
+            const container = document.getElementById('adminContent');
+            
+            // Получаем всех пользователей
+            const users = getAllUsers();
+            
+            let html = `
+                <div style="margin-bottom:15px; font-size:14px;">
+                    👥 Всего пользователей: <strong>${users.length}</strong>
+                </div>
+            `;
+            
+            users.forEach((user, index) => {
+                html += `
+                    <div class="admin-item">
+                        <div>
+                            <div>👤 ${user.username || 'Без имени'}</div>
+                            <div style="font-size:11px; opacity:0.5;">ID: ${user.user_id}</div>
+                        </div>
+                        <div>
+                            <span style="color:#ffd700;">${user.balance.toFixed(1)} RICH</span>
+                            <button onclick="adminEditUser(${user.user_id})" style="margin-left:8px; background:rgba(255,255,255,0.1); border:none; color:#fff; padding:4px 10px; border-radius:6px; cursor:pointer;">✏️</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function getAllUsers() {
+            const users = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('user_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        const user_id = parseInt(key.replace('user_', ''));
+                        users.push({
+                            user_id: user_id,
+                            username: data.username || 'Пользователь',
+                            balance: data.balance || 0
+                        });
+                    } catch(e) {}
+                }
+            }
+            return users;
+        }
+        
+        function adminEditUser(user_id) {
+            const newBalance = prompt('Введите новый баланс для пользователя ' + user_id + ' (RICH):');
+            if (newBalance !== null) {
+                const key = `user_${user_id}`;
+                const saved = localStorage.getItem(key);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    data.balance = parseFloat(newBalance);
+                    localStorage.setItem(key, JSON.stringify(data));
+                    showToast('✅ Баланс обновлён!');
+                    loadAdminPanel();
+                }
+            }
+        }
+        
+        // ============================================
+        //  ОБНОВЛЕНИЕ UI
+        // ============================================
+        function updateUI() {
+            document.getElementById('balanceDisplay').innerHTML = 
+                `${userData.balance.toFixed(2)} <span>RICH</span>`;
+            document.getElementById('minersCount').textContent = userData.miners;
+            document.getElementById('totalMined').textContent = userData.total_mined.toFixed(2);
+            document.getElementById('referralsCount').textContent = userData.referrals.length;
+            
+            updateMinersList();
+            updateReferralsList();
+            
+            const refLink = `https://t.me/Richgame1bot?start=${userData.ref_code}`;
+            document.getElementById('refLinkInput').value = refLink;
+        }
+        
+        function updateMinersList() {
+            const container = document.getElementById('minersList');
+            const now = Date.now();
+            const active = userData.miners_list.filter(m => m.is_active && now < m.end_date);
+            
+            if (active.length === 0) {
+                container.innerHTML = '<div style="text-align:center; opacity:0.5; padding:20px;">Нет майнеров</div>';
+                return;
+            }
+            
+            let html = '';
+            active.forEach((miner, i) => {
+                const daysLeft = Math.ceil((miner.end_date - now) / (24 * 60 * 60 * 1000));
+                html += `
+                    <div class="miner-item">
+                        <span>⛏️ Майнер #${i+1}</span>
+                        <span class="miner-status status-active">${daysLeft} дней</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        
+        function updateReferralsList() {
+            const container = document.getElementById('referralsList');
+            if (userData.referrals.length === 0) {
+                container.innerHTML = '<div style="text-align:center; opacity:0.5; padding:20px;">Нет рефералов</div>';
+                return;
+            }
+            
+            let html = '';
+            userData.referrals.forEach(ref => {
+                html += `
+                    <div class="miner-item">
+                        <span>👤 ID: ${ref.user_id}</span>
+                        <span style="font-size:11px; opacity:0.5;">${new Date(ref.date).toLocaleDateString()}</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        
+        // ============================================
+        //  TOAST УВЕДОМЛЕНИЯ
+        // ============================================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // ============================================
+        //  ТАБЫ
+        // ============================================
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(`tab-${this.dataset.tab}`).classList.add('active');
+            });
+        });
+        
+        // ============================================
+        //  ЗАПУСК
+        // ============================================
+        document.addEventListener('DOMContentLoaded', initTelegram);
+    </script>
+</body>
+              </html>
