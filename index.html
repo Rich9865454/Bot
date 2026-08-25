@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rich Game Telegram Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --accent-color: #ffd700;
+            --accent-blue: #2f81f7;
+            --text-main: #c9d1d9;
+            --text-white: #ffffff;
+            --border-color: #30363d;
+            --success: #238636;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+        }
+
+        /* Шапка пользователя */
+        .header {
+            background: var(--card-bg);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-details h4 {
+            color: var(--text-white);
+            font-size: 14px;
+        }
+
+        .user-details p {
+            font-size: 11px;
+            color: #8b949e;
+        }
+
+        .user-id-badge {
+            background: rgba(47, 129, 247, 0.15);
+            color: var(--accent-blue);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* Баланс */
+        .balance-container {
+            text-align: center;
+            margin: 15px 0 5px 0;
+        }
+
+        .balance-title {
+            font-size: 12px;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .balance-amount {
+            font-size: 40px;
+            font-weight: 900;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .passive-income {
+            font-size: 12px;
+            color: #7ee787;
+        }
+
+        /* Основной контент (Вкладки) */
+        .content {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 70px;
+        }
+
+        .tab-page {
+            display: none;
+            width: 100%;
+            max-width: 420px;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .tab-page.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Главная игра (Кликер) */
+        .clicker-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .coin-btn {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            border: none;
+            background: radial-gradient(circle, #ffe566 0%, #d4af37 60%, #996515 100%);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 90px;
+            transition: transform 0.05s ease;
+            outline: none;
+        }
+
+        .coin-btn:active {
+            transform: scale(0.94);
+        }
+
+        /* Шкала энергии */
+        .energy-box {
+            width: 100%;
+            max-width: 300px;
+            margin-top: 15px;
+        }
+
+        .energy-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .energy-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: #21262d;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .energy-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+            transition: width 0.2s ease;
+        }
+
+        /* Карточки магазинов и заданий */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-info h5 {
+            color: var(--text-white);
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .card-info p {
+            font-size: 12px;
+            color: #8b949e;
+        }
+
+        .btn-action {
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-action:disabled {
+            background: #21262d;
+            color: #484f58;
+            cursor: not-allowed;
+        }
+
+        /* Вылетающие цифры кликов */
+        .floating-text {
+            position: absolute;
+            font-size: 28px;
+            font-weight: 900;
+            color: #fff;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-80px); }
+        }
+
+        /* Нижнее меню навигации */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #8b949e;
+            font-size: 11px;
+            cursor: pointer;
+            width: 25%;
+        }
+
+        .nav-item.active {
+            color: var(--accent-color);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Шапка с реальными данными игрока -->
+    <div class="header">
+        <div class="user-profile">
+            <div class="avatar" id="avatar">?</div>
+            <div class="user-details">
+                <h4 id="user-fullname">Загрузка...</h4>
+                <p>ID: <span class="user-id-badge" id="user-tg-id">00000000</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Баланс монеток -->
+    <div class="balance-container">
+        <div class="balance-title">Ваш баланс</div>
+        <div class="balance-amount">💰 <span id="balance-val">0</span></div>
+        <div class="passive-income">Прибыль в сек: +<span id="passive-val">0</span></div>
+    </div>
+
+    <!-- Область контента -->
+    <div class="content">
+
+        <!-- Вкладка 1: ИГРА (КЛИКЕР) -->
+        <div id="tab-game" class="tab-page active">
+            <div class="clicker-container" id="clicker-container">
+                <button class="coin-btn" id="coin-btn">🏆</button>
+            </div>
+
+            <div class="energy-box">
+                <div class="energy-info">
+                    <span>⚡ Энергия</span>
+                    <span><strong id="energy-val">1000</strong> / <span id="max-energy-val">1000</span></span>
+                </div>
+                <div class="energy-bar-bg">
+                    <div class="energy-bar-fill" id="energy-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка 2: УЛУЧШЕНИЯ -->
+        <div id="tab-shop" class="tab-page">
+            <h3 style="color: var(--text-white); margin-bottom: 12px; width: 100%;">Магазин Прокачки</h3>
+            
+            <div class="card">
+                <div class="card-info">
+                    <h5>👆 Мульти-клик</h5>
+                    <p>+1 монетка за клик</p>
+                    <p style="color: var(--accent-color);">Цена: <span id="cost-multitap">50</span> 💰</p>
+                </div>
+                <button class="btn-action" id="buy-multitap">Купить</button>
+            </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h5>⚡ Запас Энергии</h5>
+                    <p>+500 к макс. энергии</p>
+                    <p style="color: var(--accent-color);">Цена: <span id="cost-energy">100</span> 💰</p>
+                </div>
+                <button class="btn-action" id="buy-energy">Купить</button>
+            </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h5>🤖 Авто-Майнер</h5>
+                    <p>+5 монет в секунду</p>
+                    <p style="color: var(--accent-color);">Цена: <span id="cost-passive">250</span> 💰</p>
+                </div>
+                <button class="btn-action" id="buy-passive">Купить</button>
+            </div>
+        </div>
+
+        <!-- Вкладка 3: ЗАДАНИЯ -->
+        <div id="tab-tasks" class="tab-page">
+            <h3 style="color: var(--text-white); margin-bottom: 12px; width: 100%;">Задания</h3>
+
+            <div class="card">
+                <div class="card-info">
+                    <h5>🎁 Ежедневный бонус</h5>
+                    <p>Получите +1000 монет</p>
+                </div>
+                <button class="btn-action" id="task-daily">Забрать</button>
+            </div>
+
+            <div class="card">
+                <div class="card-info">
+                    <h5>📢 Наш Телеграм канал</h5>
+                    <p>Бонус +2000 монет</p>
+                </div>
+                <button class="btn-action" id="task-channel">Выполнить</button>
+            </div>
+        </div>
+
+        <!-- Вкладка 4: РЕФЕРАЛЫ -->
+        <div id="tab-ref" class="tab-page">
+            <h3 style="color: var(--text-white); margin-bottom: 8px; width: 100%;">Рефералы</h3>
+            <p style="font-size: 13px; color: #8b949e; margin-bottom: 15px; width: 100%;">
+                Приглашайте друзей по своей ссылке. Вы получаете <strong>+1000 монет</strong> за каждого игрока!
+            </p>
+
+            <div class="card">
+                <div class="card-info">
+                    <h5>Приглашено друзей</h5>
+                    <p style="font-size: 18px; font-weight: bold; color: var(--accent-blue);" id="ref-count-val">0</p>
+                </div>
+            </div>
+
+            <button class="btn-action" id="copy-ref-btn" style="width: 100%; padding: 14px; font-size: 15px; background: var(--success); margin-top: 10px;">
+                📋 Скопировать реф-ссылку
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Нижняя навигация -->
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="switchTab('game', this)">
+            <div class="nav-icon">🎮</div>
+            <div>Игра</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('shop', this)">
+            <div class="nav-icon">⚡</div>
+            <div>Прокачка</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('tasks', this)">
+            <div class="nav-icon">📋</div>
+            <div>Задания</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('ref', this)">
+            <div class="nav-icon">👥</div>
+            <div>Друзья</div>
+        </div>
+    </div>
+
+<script>
+    // Инициализация Telegram API
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+        tg.ready();
+        tg.expand();
+    }
+
+    // Имя вашего бота (установлено)
+    const BOT_USERNAME = "Richgame1bot";
+
+    // Получаем реальные данные игрока
+    const userData = tg?.initDataUnsafe?.user;
+    const userId = userData?.id ? String(userData.id) : "guest_12345";
+    const firstName = userData?.first_name || "Игрок";
+    const lastName = userData?.last_name || "";
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    // Заполнение профиля
+    document.getElementById("user-fullname").innerText = fullName;
+    document.getElementById("user-tg-id").innerText = userId;
+    document.getElementById("avatar").innerText = firstName.charAt(0).toUpperCase();
+
+    // Ключ сохранения данных конкретного игрока
+    const SAVE_KEY = `richgame_user_data_${userId}`;
+
+    // Модель данных по умолчанию
+    let state = {
+        balance: 0,
+        clickPower: 1,
+        energy: 1000,
+        maxEnergy: 1000,
+        passiveIncome: 0,
+        costMultitap: 50,
+        costEnergy: 100,
+        costPassive: 250,
+        refCount: 0,
+        dailyClaimed: false,
+        channelDone: false
+    };
+
+    // Загрузка сохранённых данных
+    function loadData() {
+        const saved = localStorage.getItem(SAVE_KEY);
+        if (saved) {
+            try {
+                state = { ...state, ...JSON.parse(saved) };
+            } catch (e) {
+                console.error("Ошибка чтения данных", e);
+            }
+        }
+    }
+
+    // Сохранение данных
+    function saveData() {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
+
+    // Обновление веб-интерфейса
+    function updateUI() {
+        document.getElementById("balance-val").innerText = Math.floor(state.balance);
+        document.getElementById("passive-val").innerText = state.passiveIncome;
+        document.getElementById("energy-val").innerText = Math.floor(state.energy);
+        document.getElementById("max-energy-val").innerText = state.maxEnergy;
+        
+        // Полоса энергии
+        const fillPercent = (state.energy / state.maxEnergy) * 100;
+        document.getElementById("energy-fill").style.width = `${fillPercent}%`;
+
+        // Цены прокачки
+        document.getElementById("cost-multitap").innerText = state.costMultitap;
+        document.getElementById("cost-energy").innerText = state.costEnergy;
+        document.getElementById("cost-passive").innerText = state.costPassive;
+
+        // Кнопки прокачки
+        document.getElementById("buy-multitap").disabled = state.balance < state.costMultitap;
+        document.getElementById("buy-energy").disabled = state.balance < state.costEnergy;
+        document.getElementById("buy-passive").disabled = state.balance < state.costPassive;
+
+        // Задания
+        const dailyBtn = document.getElementById("task-daily");
+        if (state.dailyClaimed) {
+            dailyBtn.innerText = "Выполнено";
+            dailyBtn.disabled = true;
+        }
+
+        const channelBtn = document.getElementById("task-channel");
+        if (state.channelDone) {
+            channelBtn.innerText = "Выполнено";
+            channelBtn.disabled = true;
+        }
+
+        document.getElementById("ref-count-val").innerText = state.refCount;
+    }
+
+    // Логика клика
+    const coinBtn = document.getElementById("coin-btn");
+    const clickerContainer = document.getElementById("clicker-container");
+
+    coinBtn.addEventListener("click", (e) => {
+        if (state.energy >= state.clickPower) {
+            state.balance += state.clickPower;
+            state.energy -= state.clickPower;
+
+            // Вылетающий бонус
+            showFloatingText(`+${state.clickPower}`, e.clientX, e.clientY);
+
+            // Вибрация в Telegram
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred("light");
+            }
+
+            updateUI();
+            saveData();
+        }
+    });
+
+    // Функция создания текста при клике
+    function showFloatingText(text, x, y) {
+        const el = document.createElement("div");
+        el.className = "floating-text";
+        el.innerText = text;
+
+        const rect = clickerContainer.getBoundingClientRect();
+        const posX = x ? (x - rect.left) : rect.width / 2;
+        const posY = y ? (y - rect.top) : rect.height / 2;
+
+        el.style.left = `${posX}px`;
+        el.style.top = `${posY}px`;
+
+        clickerContainer.appendChild(el);
+        setTimeout(() => el.remove(), 800);
+    }
+
+    // Прокачка
+    document.getElementById("buy-multitap").addEventListener("click", () => {
+        if (state.balance >= state.costMultitap) {
+            state.balance -= state.costMultitap;
+            state.clickPower += 1;
+            state.costMultitap = Math.floor(state.costMultitap * 2);
+            updateUI();
+            saveData();
+        }
+    });
+
+    document.getElementById("buy-energy").addEventListener("click", () => {
+        if (state.balance >= state.costEnergy) {
+            state.balance -= state.costEnergy;
+            state.maxEnergy += 500;
+            state.energy += 500;
+            state.costEnergy = Math.floor(state.costEnergy * 2);
+            updateUI();
+            saveData();
+        }
+    });
+
+    document.getElementById("buy-passive").addEventListener("click", () => {
+        if (state.balance >= state.costPassive) {
+            state.balance -= state.costPassive;
+            state.passiveIncome += 5;
+            state.costPassive = Math.floor(state.costPassive * 2.2);
+            updateUI();
+            saveData();
+        }
+    });
+
+    // Задания
+    document.getElementById("task-daily").addEventListener("click", () => {
+        if (!state.dailyClaimed) {
+            state.balance += 1000;
+            state.dailyClaimed = true;
+            if (tg?.showAlert) tg.showAlert("Вы получили +1000 монет!");
+            updateUI();
+            saveData();
+        }
+    });
+
+    document.getElementById("task-channel").addEventListener("click", () => {
+        if (!state.channelDone) {
+            state.balance += 2000;
+            state.channelDone = true;
+            if (tg?.showAlert) tg.showAlert("Задание выполнено! Начислено +2000 монет.");
+            updateUI();
+            saveData();
+        }
+    });
+
+    // Копирование реф ссылки
+    document.getElementById("copy-ref-btn").addEventListener("click", () => {
+        const refLink = `https://t.me/${BOT_USERNAME}?start=${userId}`;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(refLink);
+            if (tg?.showAlert) {
+                tg.showAlert("Ваша реферальная ссылка скопирована в буфер обмена!");
+            } else {
+                alert("Ссылка скопирована: " + refLink);
+            }
+        }
+    });
+
+    // Навигация по вкладкам
+    window.switchTab = function(tabName, el) {
+        document.querySelectorAll(".tab-page").forEach(page => page.classList.remove("active"));
+        document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+        
+        document.getElementById(`tab-${tabName}`).classList.add("active");
+        el.classList.add("active");
+    };
+
+    // Таймеры: восстановление энергии и пассивный доход
+    setInterval(() => {
+        let changed = false;
+
+        // Регенерация энергии (+3 в секунду)
+        if (state.energy < state.maxEnergy) {
+            state.energy = Math.min(state.maxEnergy, state.energy + 3);
+            changed = true;
+        }
+
+        // Начисление пассивного дохода
+        if (state.passiveIncome > 0) {
+            state.balance += state.passiveIncome;
+            changed = true;
+        }
+
+        if (changed) {
+            updateUI();
+            saveData();
+        }
+    }, 1000);
+
+    // Старт
+    loadData();
+    updateUI();
+</script>
+</body>
+</html>
