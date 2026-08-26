@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RICH Coin Clicker Master</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151c2c;
+            --accent-gold: #ffd700;
+            --gold-glow: rgba(255, 215, 0, 0.4);
+            --text-color: #ffffff;
+            --text-secondary: #8a99ad;
+            --btn-green: #10b981;
+            --btn-blue: #3b82f6;
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Шапка */
+        header {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .user-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #000;
+            font-size: 20px;
+            box-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        .user-info h3 {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .user-info p {
+            font-size: 12px;
+            color: var(--accent-gold);
+        }
+
+        .save-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--btn-green);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid var(--btn-green);
+        }
+
+        /* Экраны */
+        .tab-content {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 15px 90px 15px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Главный экран - Кликер */
+        .balance-box {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .balance-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .balance-val {
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--accent-gold);
+            text-shadow: 0 0 20px var(--gold-glow);
+            margin-top: 5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: var(--radius);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-card span {
+            display: block;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .stat-card b {
+            font-size: 16px;
+            color: var(--accent-gold);
+        }
+
+        /* Монета RICH */
+        .coin-area {
+            position: relative;
+            margin: auto 0;
+        }
+
+        .rich-coin {
+            width: 230px;
+            height: 230px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffe57f 0%, #ffb300 60%, #ff6f00 100%);
+            box-shadow: 0 0 50px var(--gold-glow), inset 0 0 20px rgba(255, 255, 255, 0.8);
+            border: 8px solid #fff8e1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.08s ease;
+        }
+
+        .rich-coin:active {
+            transform: scale(0.93);
+        }
+
+        .coin-logo {
+            font-size: 40px;
+            font-weight: 900;
+            color: #3e2723;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .coin-sub {
+            font-size: 12px;
+            font-weight: bold;
+            color: #5d4037;
+        }
+
+        /* Вылетающие цифры */
+        .click-pop {
+            position: absolute;
+            color: var(--accent-gold);
+            font-size: 28px;
+            font-weight: 900;
+            pointer-events: none;
+            animation: popUp 0.7s ease-out forwards;
+            text-shadow: 0 2px 8px #000;
+        }
+
+        @keyframes popUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(1.4); }
+        }
+
+        /* Полоса энергии */
+        .energy-box {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+        }
+
+        .energy-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .energy-bar-bg {
+            width: 100%;
+            height: 14px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .energy-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff8c00, #ffd700);
+            width: 100%;
+            transition: width 0.1s ease;
+        }
+
+        /* Список карточек (Улучшения / Задания) */
+        .shop-list {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .shop-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .shop-info h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .shop-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .shop-info .price {
+            color: var(--accent-gold);
+            font-weight: bold;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .btn-buy {
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-buy:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Нижнее меню */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            width: 33%;
+        }
+
+        .nav-btn.active {
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        .nav-btn div {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Шапка приложения -->
+    <header>
+        <div class="user-block">
+            <div class="avatar" id="avatar">R</div>
+            <div class="user-info">
+                <h3 id="username">Босс</h3>
+                <p id="user-status">RICH Магнат</p>
+            </div>
+        </div>
+        <div class="save-badge" id="saveStatus">Сохранено</div>
+    </header>
+
+    <!-- Вкладка 1: Кликер -->
+    <div id="tab-clicker" class="tab-content active">
+        <div class="balance-box">
+            <div class="balance-label">Баланс монеты RICH</div>
+            <div class="balance-val" id="balance">0</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>За клик</span>
+                <b>+<span id="clickPower">1</span> RICH</b>
+            </div>
+            <div class="stat-card">
+                <span>Пассивный доход</span>
+                <b>+<span id="passiveIncome">0</span>/сек</b>
+            </div>
+        </div>
+
+        <div class="coin-area">
+            <div class="rich-coin" id="coin">
+                <div class="coin-logo">RICH</div>
+                <div class="coin-sub">COIN</div>
+            </div>
+        </div>
+
+        <div class="energy-box">
+            <div class="energy-text">
+                <span>⚡ Энергия</span>
+                <span><b id="energy">1000</b> / <span id="maxEnergy">1000</span></span>
+            </div>
+            <div class="energy-bar-bg">
+                <div class="energy-bar-fill" id="energyFill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладка 2: Магазин прокачки -->
+    <div id="tab-shop" class="tab-content">
+        <h2 style="margin-bottom: 20px; color: var(--accent-gold);">Прокачка RICH</h2>
+        <div class="shop-list">
+            <div class="shop-card">
+                <div class="shop-info">
+                    <h4>Мульти-клик</h4>
+                    <p>+1 монета за каждый клик</p>
+                    <div class="price"><span id="costClick">50</span> RICH</div>
+                </div>
+                <button class="btn-buy" id="btnClick" onclick="buyUpgrade('click')">Прокачать</button>
+            </div>
+
+            <div class="shop-card">
+                <div class="shop-info">
+                    <h4>Батарея</h4>
+                    <p>+500 к максимальной энергии</p>
+                    <div class="price"><span id="costEnergy">100</span> RICH</div>
+                </div>
+                <button class="btn-buy" id="btnEnergy" onclick="buyUpgrade('energy')">Прокачать</button>
+            </div>
+
+            <div class="shop-card">
+                <div class="shop-info">
+                    <h4>RICH Авто-Майнер</h4>
+                    <p>+5 монеты в секунду на автопилоте</p>
+                    <div class="price"><span id="costAuto">250</span> RICH</div>
+                </div>
+                <button class="btn-buy" id="btnAuto" onclick="buyUpgrade('auto')">Прокачать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладка 3: Задания и рефералы -->
+    <div id="tab-tasks" class="tab-content">
+        <h2 style="margin-bottom: 20px; color: var(--accent-gold);">Бесплатные RICH</h2>
+        <div class="shop-list">
+            <div class="shop-card">
+                <div class="shop-info">
+                    <h4>Подписка на канал</h4>
+                    <p>Получи бонусы за подписку</p>
+                    <div class="price">+1 000 RICH</div>
+                </div>
+                <button class="btn-buy" onclick="claimTask(this, 1000)">Забрать</button>
+            </div>
+
+            <div class="shop-card">
+                <div class="shop-info">
+                    <h4>Пригласить друга</h4>
+                    <p>За каждого активного реферала</p>
+                    <div class="price">+2 500 RICH</div>
+                </div>
+                <button class="btn-buy" onclick="shareRef()">Пригласить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Навигация -->
+    <nav>
+        <button class="nav-btn active" onclick="showTab('tab-clicker', this)">
+            <div>🪙</div>
+            <span>Монета</span>
+        </button>
+        <button class="nav-btn" onclick="showTab('tab-shop', this)">
+            <div>⚡</div>
+            <span>Бусты</span>
+        </button>
+        <button class="nav-btn" onclick="showTab('tab-tasks', this)">
+            <div>🎁</div>
+            <span>Задания</span>
+        </button>
+    </nav>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Базовые данные игры
+        let game = {
+            balance: 0,
+            clickPower: 1,
+            passiveIncome: 0,
+            energy: 1000,
+            maxEnergy: 1000,
+            costs: {
+                click: 50,
+                energy: 100,
+                auto: 250
+            }
+        };
+
+        // Подгрузка юзера Telegram
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const u = tg.initDataUnsafe.user;
+            document.getElementById('username').innerText = u.first_name || "Босс";
+            document.getElementById('avatar').innerText = (u.first_name || "R").charAt(0).toUpperCase();
+        }
+
+        // Загрузка сохранённого прогресса
+        function loadProgress() {
+            const data = localStorage.getItem('rich_coin_save');
+            if (data) {
+                try {
+                    game = JSON.parse(data);
+                } catch (e) {
+                    console.error("Ошибка загрузки", e);
+                }
+            }
+            updateUI();
+        }
+
+        // Сохранение прогресса
+        function saveProgress() {
+            localStorage.setItem('rich_coin_save', JSON.stringify(game));
+            const badge = document.getElementById('saveStatus');
+            badge.innerText = "Сохранено";
+            badge.style.opacity = "1";
+            setTimeout(() => { badge.style.opacity = "0.6"; }, 1000);
+        }
+
+        // Обновление всей графики
+        function updateUI() {
+            document.getElementById('balance').innerText = Math.floor(game.balance).toLocaleString();
+            document.getElementById('clickPower').innerText = game.clickPower;
+            document.getElementById('passiveIncome').innerText = game.passiveIncome;
+            document.getElementById('energy').innerText = Math.floor(game.energy);
+            document.getElementById('maxEnergy').innerText = game.maxEnergy;
+
+            // Шкала энергии
+            const energyPercent = (game.energy / game.maxEnergy) * 100;
+            document.getElementById('energyFill').style.width = energyPercent + '%';
+
+            // Цены
+            document.getElementById('costClick').innerText = game.costs.click;
+            document.getElementById('costEnergy').innerText = game.costs.energy;
+            document.getElementById('costAuto').innerText = game.costs.auto;
+
+            // Блокировка кнопок при нехватке денег
+            document.getElementById('btnClick').disabled = game.balance < game.costs.click;
+            document.getElementById('btnEnergy').disabled = game.balance < game.costs.energy;
+            document.getElementById('btnAuto').disabled = game.balance < game.costs.auto;
+        }
+
+        // Кликер по монете
+        const coin = document.getElementById('coin');
+        
+        function handleCoinTouch(e) {
+            e.preventDefault();
+            if (game.energy < game.clickPower) {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+
+            // Начисление и списывание энергии
+            game.balance += game.clickPower;
+            game.energy -= game.clickPower;
+
+            // Вибрация Telegram
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            // Анимация вылетающих цифр
+            const rect = coin.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            const x = (touch.clientX || rect.left + rect.width / 2) - rect.left;
+            const y = (touch.clientY || rect.top + rect.height / 2) - rect.top;
+
+            const pop = document.createElement('div');
+            pop.className = 'click-pop';
+            pop.innerText = `+${game.clickPower}`;
+            pop.style.left = `${x}px`;
+            pop.style.top = `${y}px`;
+
+            coin.appendChild(pop);
+            setTimeout(() => pop.remove(), 700);
+
+            updateUI();
+        }
+
+        coin.addEventListener('touchstart', handleCoinTouch);
+        coin.addEventListener('click', handleCoinTouch);
+
+        // Покупка апгрейдов
+        function buyUpgrade(type) {
+            if (type === 'click' && game.balance >= game.costs.click) {
+                game.balance -= game.costs.click;
+                game.clickPower += 1;
+                game.costs.click = Math.floor(game.costs.click * 1.8);
+            } else if (type === 'energy' && game.balance >= game.costs.energy) {
+                game.balance -= game.costs.energy;
+                game.maxEnergy += 500;
+                game.energy += 500;
+                game.costs.energy = Math.floor(game.costs.energy * 2.1);
+            } else if (type === 'auto' && game.balance >= game.costs.auto) {
+                game.balance -= game.costs.auto;
+                game.passiveIncome += 5;
+                game.costs.auto = Math.floor(game.costs.auto * 2.5);
+            }
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            updateUI();
+            saveProgress();
+        }
+
+        // Задания
+        function claimTask(btn, amount) {
+            game.balance += amount;
+            btn.disabled = true;
+            btn.innerText = "Выполнено";
+            btn.style.background = "#4b5563";
+            updateUI();
+            saveProgress();
+        }
+
+        function shareRef() {
+            tg.openTelegramLink("https://t.me/share/url?url=Заходи%20и%20майни%20монету%20RICH!");
+        }
+
+        // Вкладки
+        function showTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        // Игровой цикл (Восстановление энергии + Пассивный майнинг)
+        setInterval(() => {
+            // Пассивный майнинг
+            if (game.passiveIncome > 0) {
+                game.balance += game.passiveIncome / 10;
+            }
+
+            // Восстановление энергии
+            if (game.energy < game.maxEnergy) {
+                game.energy = Math.min(game.maxEnergy, game.energy + 0.5);
+            }
+
+            updateUI();
+        }, 100);
+
+        // Автосохранение каждые 5 секунд
+        setInterval(saveProgress, 5000);
+
+        // Старт
+        loadProgress();
+    </script>
+</body>
+</html>
